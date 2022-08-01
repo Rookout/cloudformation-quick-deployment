@@ -1,0 +1,98 @@
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where resources will be deployed.
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnets:
+    Description: Select list of private subnets for ECS tasks. They should be in same VPC and has routes between PublicSubnets.
+    Type: AWS::EC2::Subnet::Id
+  HostedZone:
+    Type: AWS::Route53::HostedZone::Id
+  Domain:
+    Type: String
+  RookoutToken:
+    Type: String
+
+Resources:
+
+  ControllerSG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/sg/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+
+  ControllerALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/alb/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutControllerFargateServiceSecurityGroup:
+          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceSecurityGroup ]
+        RookoutControllerFargateServiceLBSecurityGroup:
+          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceLBSecurityGroup ]
+
+  ControllerIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/iam/template.yaml
+
+  ECS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ecs/template.yaml
+
+  Certificates:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: certificates/template.yaml
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+
+  ControllerFargate:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/fargate/template.yaml
+      Parameters:
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnets:
+          Ref: PrivateSubnets
+        RookoutCluster:
+          Fn::GetAtt: [ ECS, Outputs.RookoutCluster ]
+        RookoutCertificate:
+          Fn::GetAtt: [ Certificates, Outputs.RookoutCertificate ]
+        RookoutControllerFargateServiceSecurityGroup:
+          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceSecurityGroup ]
+        RookoutControllerFargateServiceTaskDefTaskRole:
+          Fn::GetAtt: [ ControllerIAM, Outputs.RookoutControllerFargateServiceTaskDefTaskRole ]
+        RookoutControllerFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt: [ ControllerIAM, Outputs.RookoutControllerFargateServiceTaskDefExecutionRole ]
+
+#  ControllerRoute53:
+#    Type: AWS::CloudFormation::Stack
+#    Properties:
+#      TemplateURL: controller/route53/template.yaml
+#      Parameters:
+#        HostedZone:
+#          Ref: HostedZone
+#        Domain:
+#          Ref: Domain
+#        RookoutControllerFargateServiceDNSName:
+#          Fn::GetAtt: [ ControllerFargate, Outputs.RookoutControllerFargateServiceDNSName ]
+#        RookoutControllerFargateServiceHostedZone:
+#          Fn::GetAtt: [ ControllerFargate, Outputs.RookoutControllerFargateServiceHostedZone ]

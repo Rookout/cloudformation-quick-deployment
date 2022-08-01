@@ -1,0 +1,78 @@
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where resources will be deployed.
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnets:
+    Description: Select list of private subnets for ECS tasks. They should be in same
+      VPC and has routes between PublicSubnets.
+    Type: AWS::EC2::Subnet::Id
+  HostedZone:
+    Type: AWS::Route53::HostedZone::Id
+  Domain:
+    Type: String
+  RookoutToken:
+    Type: String
+Resources:
+  ControllerSG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/b439fc3e0b9993837bb891c66df7fbc4.template
+      Parameters:
+        VpcId:
+          Ref: VpcId
+  ControllerALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/8d62d6a0c4138200205408ce041ec8b2.template
+      Parameters:
+        VpcId:
+          Ref: VpcId
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutControllerFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - ControllerSG
+          - Outputs.RookoutControllerFargateServiceSecurityGroup
+        RookoutControllerFargateServiceLBSecurityGroup:
+          Fn::GetAtt:
+          - ControllerSG
+          - Outputs.RookoutControllerFargateServiceLBSecurityGroup
+  ControllerIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/b1c1e5f558c73cdf46dc56f1ce5e819a.template
+  ECS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/28119bb8b857f05aa59887dc0ea3c95d.template
+  ControllerFargate:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/df4d73a4be433b36589313f18b096b5e.template
+      Parameters:
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnets:
+          Ref: PrivateSubnets
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutControllerFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - ControllerSG
+          - Outputs.RookoutControllerFargateServiceSecurityGroup
+        RookoutControllerFargateServiceTaskDefTaskRole:
+          Fn::GetAtt:
+          - ControllerIAM
+          - Outputs.RookoutControllerFargateServiceTaskDefTaskRole
+        RookoutControllerFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt:
+          - ControllerIAM
+          - Outputs.RookoutControllerFargateServiceTaskDefExecutionRole

@@ -1,0 +1,139 @@
+Parameters:
+
+  RookoutCluster:
+    Type: String
+  RookoutToken:
+    Type: String
+  RookoutCertificate:
+    Type: String
+  PrivateSubnets:
+    Type: String
+  RookoutControllerFargateServiceTaskDefTaskRole:
+    Type: String
+  RookoutControllerFargateServiceTaskDefExecutionRole:
+    Type: String
+  RookoutControllerFargateServiceSecurityGroup:
+    Type: String
+
+Resources:
+  RookoutControllerFargateServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Environment:
+            - Name: ROOKOUT_TOKEN
+              Value:
+                Ref: RookoutToken
+            - Name: ROOKOUT_ENFORCE_TOKEN
+              Value: "true"
+            - Name: ROOKOUT_CONTROLLER_SERVER_MODE
+              Value: PLAIN
+            - Name: ONPREM_ENABLED
+              Value: "true"
+            - Name: ROOKOUT_DOP_NO_SSL_VERIFY
+              Value: "false"
+          Essential: true
+          Image: rookout/controller:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: RookoutControllerFargateServiceTaskDefcontrollerLogGroup
+              awslogs-stream-prefix: RookoutControllerFargateService
+              awslogs-region:
+                Ref: AWS::Region
+          Name: controller
+          PortMappings:
+            - ContainerPort: 7488
+              Protocol: tcp
+      Cpu: "512"
+      ExecutionRoleArn: !Ref RookoutControllerFargateServiceTaskDefExecutionRole
+      Family: RookoutStackRookoutControllerFargateServiceTaskDef
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !Ref RookoutControllerFargateServiceTaskDefTaskRole
+
+  RookoutControllerFargateServiceLBPublicListenerECSGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId:
+        Ref: VpcId
+
+  RookoutControllerFargateService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: RookoutCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 2
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: controller
+          ContainerPort: 7488
+          TargetGroupArn:
+            Ref: RookoutControllerFargateServiceLBPublicListenerECSGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Ref: RookoutControllerFargateServiceSecurityGroup
+          Subnets:
+            - Ref: PrivateSubnets
+      TaskDefinition:
+        Ref: RookoutControllerFargateServiceTaskDef
+
+  RookoutControllerFargateServiceLBPublicListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: RookoutControllerFargateServiceLBPublicListenerECSGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: RookoutControllerFargateService
+      Certificates:
+        - CertificateArn:
+            Ref: RookoutCertificate
+      Port: 443
+      Protocol: HTTPS
+
+  RookoutControllerFargateServiceTaskDefExecutionRoleDefaultPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - RookoutControllerFargateServiceTaskDefcontrollerLogGroup
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: RookoutControllerFargateServiceTaskDefExecutionRoleDefaultPolicy
+      Roles:
+        - Ref: RookoutControllerFargateServiceTaskDefExecutionRole
+
+  RookoutControllerFargateServiceTaskDefcontrollerLogGroup:
+    Type: AWS::Logs::LogGroup
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+
+Outputs:
+  RookoutControllerFargateServiceDNSName:
+    Value: !GetAtt RookoutControllerFargateService.DNSName
+  RookoutControllerFargateServiceHostedZone:
+    Value: !GetAtt RookoutControllerFargateService.HostedZone

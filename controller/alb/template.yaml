@@ -1,0 +1,48 @@
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  RookoutControllerFargateServiceSecurityGroup:
+    Type: String
+  RookoutControllerFargateServiceLBSecurityGroup:
+    Type: String
+  PublicSubnetA:
+    Type: String
+  PublicSubnetB:
+    Type: String
+
+Resources:
+
+  RookoutControllerFargateServiceLBSecurityGrouptoRookoutStackRookoutControllerFargateServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref RookoutControllerFargateServiceLBSecurityGroup
+      IpProtocol: tcp
+      Description: Load balancer to target
+      DestinationSecurityGroupId: !Ref RookoutControllerFargateServiceSecurityGroup
+      FromPort: 7488
+      ToPort: 7488
+
+  RookoutControllerFargateServiceSecurityGroupfromRookoutStackRookoutControllerFargateServiceLBSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Load balancer to target
+      FromPort: 7488
+      GroupId: !Ref RookoutControllerFargateServiceSecurityGroup
+      SourceSecurityGroupId: !Ref RookoutControllerFargateServiceLBSecurityGroup
+      ToPort: 7488
+
+  RookoutControllerFargateServiceLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Ref: RookoutControllerFargateServiceLBSecurityGroup
+      Subnets:
+        - Ref: PublicSubnetA
+        - Ref: PublicSubnetB
+      Type: application
+

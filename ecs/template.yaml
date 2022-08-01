@@ -1,0 +1,6 @@
+Resources:
+  RookoutECSCluster:
+    Type: AWS::ECS::Cluster
+Outputs:
+  RookoutCluster:
+    Value: !GetAtt RookoutECSCluster.Arn

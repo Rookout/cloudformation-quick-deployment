@@ -1,0 +1,61 @@
+Parameters:
+  HostedZone:
+    Type: AWS::Route53::HostedZone::Id
+  Domain:
+    Type: String
+Resources:
+  RookoutCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName:
+        Fn::Join:
+          - ""
+          - - rookout.
+            - Ref: Domain
+      DomainValidationOptions:
+        - DomainName:
+            Fn::Join:
+              - ""
+              - - rookout.
+                - Ref: Domain
+          HostedZoneId:
+            Ref: HostedZone
+        - DomainName:
+            Fn::Join:
+              - ""
+              - - controller.rookout.
+                - Ref: Domain
+          HostedZoneId:
+            Ref: HostedZone
+        - DomainName:
+            Fn::Join:
+              - ""
+              - - datastore.rookout.
+                - Ref: Domain
+          HostedZoneId:
+            Ref: HostedZone
+        - DomainName:
+            Fn::Join:
+              - ""
+              - - demo.rookout.
+                - Ref: Domain
+          HostedZoneId:
+            Ref: HostedZone
+      SubjectAlternativeNames:
+        - Fn::Join:
+            - ""
+            - - controller.rookout.
+              - Ref: Domain
+        - Fn::Join:
+            - ""
+            - - datastore.rookout.
+              - Ref: Domain
+        - Fn::Join:
+            - ""
+            - - demo.rookout.
+              - Ref: Domain
+      ValidationMethod: DNS
+
+Outputs:
+  RookoutCertificate:
+    Value: Ref RookoutCertificate

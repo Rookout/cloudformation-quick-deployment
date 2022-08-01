@@ -1,0 +1,30 @@
+Parameters:
+  HostedZone:
+    Type: AWS::Route53::HostedZone::Id
+  Domain:
+    Type: String
+  RookoutControllerFargateServiceDNSName:
+    Type: String
+  RookoutControllerFargateServiceHostedZone:
+    Type: String
+Resources:
+  RookoutControllerFargateServiceDNS:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name:
+        Fn::Join:
+          - ""
+          - - controller.rookout.
+            - Ref: Domain
+            - "."
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::Join:
+            - ""
+            - - dualstack.
+              - Ref: RookoutControllerFargateServiceDNSName
+        HostedZoneId:
+          Ref: RookoutControllerFargateServiceHostedZone
+      HostedZoneId:
+        Ref: HostedZone
