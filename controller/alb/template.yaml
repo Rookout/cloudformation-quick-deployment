@@ -1,6 +1,5 @@
 Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
+
   RookoutControllerFargateServiceSecurityGroup:
     Type: String
   RookoutControllerFargateServiceLBSecurityGroup:
@@ -46,3 +45,10 @@ Resources:
         - Ref: PublicSubnetB
       Type: application
 
+Outputs:
+  RookoutControllerFargateServiceLBArn:
+    Value: Ref RookoutControllerFargateServiceLB
+  RookoutControllerFargateServiceLBDNSName:
+    Value: !GetAtt RookoutControllerFargateServiceLB.DNSName
+  RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+    Value: !GetAtt RookoutControllerFargateServiceLB.CanonicalHostedZoneID

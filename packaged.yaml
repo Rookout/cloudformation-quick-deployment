@@ -27,7 +27,7 @@ Resources:
   ControllerALB:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/8d62d6a0c4138200205408ce041ec8b2.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/c4a7be53d77ebd9b840d9c7484549ade.template
       Parameters:
         VpcId:
           Ref: VpcId
@@ -46,16 +46,27 @@ Resources:
   ControllerIAM:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/b1c1e5f558c73cdf46dc56f1ce5e819a.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/1877571180ee3fd775ae94de96c09b82.template
   ECS:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/28119bb8b857f05aa59887dc0ea3c95d.template
+  Certificates:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/75a127961c6a287ea6fb23a1ed8dedfb.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
   ControllerFargate:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/df4d73a4be433b36589313f18b096b5e.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/a79de38e5e936bce62ccc482240e313b.template
       Parameters:
+        VpcId:
+          Ref: VpcId
         RookoutToken:
           Ref: RookoutToken
         PrivateSubnets:
@@ -64,6 +75,10 @@ Resources:
           Fn::GetAtt:
           - ECS
           - Outputs.RookoutCluster
+        RookoutCertificate:
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
         RookoutControllerFargateServiceSecurityGroup:
           Fn::GetAtt:
           - ControllerSG
@@ -76,3 +91,24 @@ Resources:
           Fn::GetAtt:
           - ControllerIAM
           - Outputs.RookoutControllerFargateServiceTaskDefExecutionRole
+        RookoutControllerFargateServiceLBArn:
+          Fn::GetAtt:
+          - ControllerALB
+          - Outputs.RookoutControllerFargateServiceLBArn
+  ControllerRoute53:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/4290840e9c7c91c0718375f4d2635d5d.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutControllerFargateServiceLBDNSName:
+          Fn::GetAtt:
+          - ControllerALB
+          - Outputs.RookoutControllerFargateServiceLBDNSName
+        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt:
+          - ControllerALB
+          - Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID

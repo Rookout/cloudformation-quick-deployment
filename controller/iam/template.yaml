@@ -27,4 +27,4 @@ Outputs:
   RookoutControllerFargateServiceTaskDefTaskRole:
     Value: !GetAtt RookoutControllerFargateServiceTaskDefTaskRole.Arn
   RookoutControllerFargateServiceTaskDefExecutionRole:
-    Value: !GetAtt RookoutControllerFargateServiceTaskDefExecutionRole.Arn
+    Value: !GetAtt RookoutControllerFargateServiceTaskDefExecutionRole

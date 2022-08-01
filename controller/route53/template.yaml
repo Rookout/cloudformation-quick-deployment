@@ -3,9 +3,9 @@ Parameters:
     Type: AWS::Route53::HostedZone::Id
   Domain:
     Type: String
-  RookoutControllerFargateServiceDNSName:
+  RookoutControllerFargateServiceLBDNSName:
     Type: String
-  RookoutControllerFargateServiceHostedZone:
+  RookoutControllerFargateServiceLBCanonicalHostedZoneID:
     Type: String
 Resources:
   RookoutControllerFargateServiceDNS:
@@ -23,8 +23,8 @@ Resources:
           Fn::Join:
             - ""
             - - dualstack.
-              - Ref: RookoutControllerFargateServiceDNSName
+              - Ref: RookoutControllerFargateServiceLBDNSName
         HostedZoneId:
-          Ref: RookoutControllerFargateServiceHostedZone
+          Ref: RookoutControllerFargateServiceLBCanonicalHostedZoneID
       HostedZoneId:
         Ref: HostedZone

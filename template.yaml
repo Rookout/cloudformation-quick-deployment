@@ -68,6 +68,8 @@ Resources:
     Properties:
       TemplateURL: controller/fargate/template.yaml
       Parameters:
+        VpcId:
+          Ref: VpcId
         RookoutToken:
           Ref: RookoutToken
         PrivateSubnets:
@@ -82,17 +84,19 @@ Resources:
           Fn::GetAtt: [ ControllerIAM, Outputs.RookoutControllerFargateServiceTaskDefTaskRole ]
         RookoutControllerFargateServiceTaskDefExecutionRole:
           Fn::GetAtt: [ ControllerIAM, Outputs.RookoutControllerFargateServiceTaskDefExecutionRole ]
+        RookoutControllerFargateServiceLBArn:
+          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBArn ]
 
-#  ControllerRoute53:
-#    Type: AWS::CloudFormation::Stack
-#    Properties:
-#      TemplateURL: controller/route53/template.yaml
-#      Parameters:
-#        HostedZone:
-#          Ref: HostedZone
-#        Domain:
-#          Ref: Domain
-#        RookoutControllerFargateServiceDNSName:
-#          Fn::GetAtt: [ ControllerFargate, Outputs.RookoutControllerFargateServiceDNSName ]
-#        RookoutControllerFargateServiceHostedZone:
-#          Fn::GetAtt: [ ControllerFargate, Outputs.RookoutControllerFargateServiceHostedZone ]
+  ControllerRoute53:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/route53/template.yaml
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutControllerFargateServiceLBDNSName:
+          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBDNSName ]
+        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID ]

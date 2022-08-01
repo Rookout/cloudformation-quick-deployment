@@ -1,5 +1,7 @@
 Parameters:
 
+  VpcId:
+    Type: AWS::EC2::VPC::Id
   RookoutCluster:
     Type: String
   RookoutToken:
@@ -13,6 +15,8 @@ Parameters:
   RookoutControllerFargateServiceTaskDefExecutionRole:
     Type: String
   RookoutControllerFargateServiceSecurityGroup:
+    Type: String
+  RookoutControllerFargateServiceLBArn:
     Type: String
 
 Resources:
@@ -55,18 +59,6 @@ Resources:
         - FARGATE
       TaskRoleArn: !Ref RookoutControllerFargateServiceTaskDefTaskRole
 
-  RookoutControllerFargateServiceLBPublicListenerECSGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Port: 80
-      Protocol: HTTP
-      TargetGroupAttributes:
-        - Key: stickiness.enabled
-          Value: "false"
-      TargetType: ip
-      VpcId:
-        Ref: VpcId
-
   RookoutControllerFargateService:
     Type: AWS::ECS::Service
     Properties:
@@ -93,6 +85,21 @@ Resources:
             - Ref: PrivateSubnets
       TaskDefinition:
         Ref: RookoutControllerFargateServiceTaskDef
+    DependsOn:
+      - RookoutControllerFargateServiceLBPublicListenerECSGroup
+      - RookoutControllerFargateServiceLBPublicListener
+
+  RookoutControllerFargateServiceLBPublicListenerECSGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId:
+        Ref: VpcId
 
   RookoutControllerFargateServiceLBPublicListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -102,7 +109,7 @@ Resources:
             Ref: RookoutControllerFargateServiceLBPublicListenerECSGroup
           Type: forward
       LoadBalancerArn:
-        Ref: RookoutControllerFargateService
+        Ref: RookoutControllerFargateServiceLBArn
       Certificates:
         - CertificateArn:
             Ref: RookoutCertificate
@@ -131,9 +138,3 @@ Resources:
     Type: AWS::Logs::LogGroup
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
-
-Outputs:
-  RookoutControllerFargateServiceDNSName:
-    Value: !GetAtt RookoutControllerFargateService.DNSName
-  RookoutControllerFargateServiceHostedZone:
-    Value: !GetAtt RookoutControllerFargateService.HostedZone
