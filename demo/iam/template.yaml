@@ -1,0 +1,30 @@
+Resources:
+
+  RookoutDemoFargateServiceTaskDefTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+
+  RookoutDemoFargateServiceTaskDefExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+Outputs:
+  RookoutDemoFargateServiceTaskDefTaskRole:
+    Value: !GetAtt RookoutDemoFargateServiceTaskDefTaskRole.Arn
+  RookoutDemoFargateServiceTaskDefExecutionRole:
+    Value: !Ref RookoutDemoFargateServiceTaskDefExecutionRole

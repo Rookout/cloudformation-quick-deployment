@@ -22,11 +22,21 @@ Parameters:
     - 'false'
     Default: 'false'
     Type: String
+  Demo:
+    AllowedValues:
+    - 'true'
+    - 'false'
+    Default: 'false'
+    Type: String
 Conditions:
   ShouldCreateDataStore:
     Fn::Equals:
     - true
     - Ref: DataStore
+  ShouldCreateDemo:
+    Fn::Equals:
+    - true
+    - Ref: Demo
 Resources:
   ECS:
     Type: AWS::CloudFormation::Stack
@@ -104,6 +114,23 @@ Resources:
           Fn::GetAtt:
           - ControllerALB
           - Outputs.RookoutControllerFargateServiceLBArn
+  ControllerRoute53:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/4290840e9c7c91c0718375f4d2635d5d.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutControllerFargateServiceLBDNSName:
+          Fn::GetAtt:
+          - ControllerALB
+          - Outputs.RookoutControllerFargateServiceLBDNSName
+        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt:
+          - ControllerALB
+          - Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID
   DataStoreSG:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDataStore
@@ -189,3 +216,90 @@ Resources:
           Fn::GetAtt:
           - DataStoreALB
           - Outputs.RookoutDataStoreFargateServiceLBCanonicalHostedZoneID
+  DemoSG:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/653744b2dd56917a70fe5eabd77479cf.template
+      Parameters:
+        VpcId:
+          Ref: VpcId
+  DemoALB:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/aeab1e4d2b632675626135487837c632.template
+      Parameters:
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutDemoFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - DemoSG
+          - Outputs.RookoutDemoFargateServiceSecurityGroup
+        RookoutDemoFargateServiceLBSecurityGroup:
+          Fn::GetAtt:
+          - DemoSG
+          - Outputs.RookoutDemoFargateServiceLBSecurityGroup
+  DemoIAM:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/5071c301b7a88f16ede732a4d09a5b30.template
+  DemoFargate:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/d76d446c1b99d7887c44cef755c1ec30.template
+      Parameters:
+        Domain:
+          Ref: Domain
+        VpcId:
+          Ref: VpcId
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnets:
+          Ref: PrivateSubnets
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutCertificate:
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
+        RookoutDemoFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - DemoSG
+          - Outputs.RookoutDemoFargateServiceSecurityGroup
+        RookoutDemoFargateServiceTaskDefTaskRole:
+          Fn::GetAtt:
+          - DemoIAM
+          - Outputs.RookoutDemoFargateServiceTaskDefTaskRole
+        RookoutDemoFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt:
+          - DemoIAM
+          - Outputs.RookoutDemoFargateServiceTaskDefExecutionRole
+        RookoutDemoFargateServiceLBArn:
+          Fn::GetAtt:
+          - DemoALB
+          - Outputs.RookoutDemoFargateServiceLBArn
+  DemoRoute53:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/beb8238d618094115e740065a96daf2a.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutDemoFargateServiceLBDNSName:
+          Fn::GetAtt:
+          - DemoALB
+          - Outputs.RookoutDemoFargateServiceLBDNSName
+        RookoutDemoFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt:
+          - DemoALB
+          - Outputs.RookoutDemoFargateServiceLBCanonicalHostedZoneID

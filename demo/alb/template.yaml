@@ -1,0 +1,54 @@
+Parameters:
+
+  RookoutDemoFargateServiceSecurityGroup:
+    Type: String
+  RookoutDemoFargateServiceLBSecurityGroup:
+    Type: String
+  PublicSubnetA:
+    Type: String
+  PublicSubnetB:
+    Type: String
+
+Resources:
+
+  RookoutDemoFargateServiceLBSecurityGrouptoRookoutStackRookoutDemoFargateServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref RookoutDemoFargateServiceLBSecurityGroup
+      IpProtocol: tcp
+      Description: Load balancer to target
+      DestinationSecurityGroupId: !Ref RookoutDemoFargateServiceSecurityGroup
+      FromPort: 7488
+      ToPort: 7488
+
+  RookoutDemoFargateServiceSecurityGroupfromRookoutStackRookoutDemoFargateServiceLBSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Load balancer to target
+      FromPort: 7488
+      GroupId: !Ref RookoutDemoFargateServiceSecurityGroup
+      SourceSecurityGroupId: !Ref RookoutDemoFargateServiceLBSecurityGroup
+      ToPort: 7488
+
+  RookoutDemoFargateServiceLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Ref: RookoutDemoFargateServiceLBSecurityGroup
+      Subnets:
+        - Ref: PublicSubnetA
+        - Ref: PublicSubnetB
+      Type: application
+
+Outputs:
+  RookoutDemoFargateServiceLBArn:
+    Value: !Ref RookoutDemoFargateServiceLB
+  RookoutDemoFargateServiceLBDNSName:
+    Value: !GetAtt RookoutDemoFargateServiceLB.DNSName
+  RookoutDemoFargateServiceLBCanonicalHostedZoneID:
+    Value: !GetAtt RookoutDemoFargateServiceLB.CanonicalHostedZoneID
