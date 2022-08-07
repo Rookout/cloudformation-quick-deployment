@@ -1,0 +1,138 @@
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  RookoutCluster:
+    Type: String
+  RookoutToken:
+    Type: String
+  RookoutCertificate:
+    Type: String
+  PrivateSubnets:
+    Type: String
+  RookoutDataStoreFargateServiceTaskDefTaskRole:
+    Type: String
+  RookoutDataStoreFargateServiceTaskDefExecutionRole:
+    Type: String
+  RookoutDataStoreFargateServiceSecurityGroup:
+    Type: String
+  RookoutDataStoreFargateServiceLBArn:
+    Type: String
+
+Resources:
+  RookoutDataStoreFargateServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Environment:
+            - Name: ROOKOUT_DOP_LOGGING_TOKEN
+              Value:
+                Ref: RookoutToken
+            - Name: ROOKOUT_DOP_SERVER_MODE
+              Value: PLAIN
+            - Name: ROOKOUT_DOP_IN_MEMORY_DB
+              Value: "false"
+            - Name: ROOKOUT_DOP_PORT
+              Value: 8080
+          Essential: true
+          Image: rookout/data-on-prem:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: RookoutDataStoreFargateServiceTaskDefDataStoreLogGroup
+              awslogs-stream-prefix: RookoutDataStoreFargateService
+              awslogs-region:
+                Ref: AWS::Region
+          Name: DataStore
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+      Cpu: "512"
+      ExecutionRoleArn: !Ref RookoutDataStoreFargateServiceTaskDefExecutionRole
+      Family: RookoutStackRookoutDataStoreFargateServiceTaskDef
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !Ref RookoutDataStoreFargateServiceTaskDefTaskRole
+
+  RookoutDataStoreFargateService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: RookoutCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 1
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: DataStore
+          ContainerPort: 8080
+          TargetGroupArn:
+            Ref: RookoutDataStoreFargateServiceLBPublicListenerECSGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Ref: RookoutDataStoreFargateServiceSecurityGroup
+          Subnets:
+            - Ref: PrivateSubnets
+      TaskDefinition:
+        Ref: RookoutDataStoreFargateServiceTaskDef
+    DependsOn:
+      - RookoutDataStoreFargateServiceLBPublicListenerECSGroup
+      - RookoutDataStoreFargateServiceLBPublicListener
+
+  RookoutDataStoreFargateServiceLBPublicListenerECSGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId:
+        Ref: VpcId
+
+  RookoutDataStoreFargateServiceLBPublicListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: RookoutDataStoreFargateServiceLBPublicListenerECSGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: RookoutDataStoreFargateServiceLBArn
+      Certificates:
+        - CertificateArn:
+            Ref: RookoutCertificate
+      Port: 443
+      Protocol: HTTPS
+
+  RookoutDataStoreFargateServiceTaskDefExecutionRoleDefaultPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - RookoutDataStoreFargateServiceTaskDefDataStoreLogGroup
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: RookoutDataStoreFargateServiceTaskDefExecutionRoleDefaultPolicy
+      Roles:
+        - Ref: RookoutDataStoreFargateServiceTaskDefExecutionRole
+
+  RookoutDataStoreFargateServiceTaskDefDataStoreLogGroup:
+    Type: AWS::Logs::LogGroup
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain

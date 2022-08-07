@@ -1,0 +1,30 @@
+Resources:
+
+  RookoutDataStoreFargateServiceTaskDefTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+
+  RookoutDataStoreFargateServiceTaskDefExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+Outputs:
+  RookoutDataStoreFargateServiceTaskDefTaskRole:
+    Value: !GetAtt RookoutDataStoreFargateServiceTaskDefTaskRole.Arn
+  RookoutDataStoreFargateServiceTaskDefExecutionRole:
+    Value: !Ref RookoutDataStoreFargateServiceTaskDefExecutionRole

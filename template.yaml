@@ -16,6 +16,14 @@ Parameters:
     Type: String
   RookoutToken:
     Type: String
+  DataStore:
+    "AllowedValues": ["true", "false"]
+    "Default": "false"
+    "Type": String
+
+Conditions:
+  ShouldCreateDataStore:
+    !Equals [true, !Ref DataStore]
 
 Resources:
 
@@ -33,7 +41,7 @@ Resources:
           Ref: HostedZone
         Domain:
           Ref: Domain
-
+### Controller Resources ###
   ControllerSG:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -85,16 +93,88 @@ Resources:
         RookoutControllerFargateServiceLBArn:
           Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBArn ]
 
-  ControllerRoute53:
+#  ControllerRoute53:
+#    Type: AWS::CloudFormation::Stack
+#    Properties:
+#      TemplateURL: controller/route53/template.yaml
+#      Parameters:
+#        HostedZone:
+#          Ref: HostedZone
+#        Domain:
+#          Ref: Domain
+#        RookoutControllerFargateServiceLBDNSName:
+#          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBDNSName ]
+#        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+#          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID ]
+
+### DataStore Resources ###
+
+  DataStoreSG:
     Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
     Properties:
-      TemplateURL: controller/route53/template.yaml
+      TemplateURL: datastore/sg/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+
+  DataStoreALB:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: datastore/alb/template.yaml
+      Parameters:
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutDataStoreFargateServiceSecurityGroup:
+          Fn::GetAtt: [ DataStoreSG, Outputs.RookoutDataStoreFargateServiceSecurityGroup ]
+        RookoutDataStoreFargateServiceLBSecurityGroup:
+          Fn::GetAtt: [ DataStoreSG, Outputs.RookoutDataStoreFargateServiceLBSecurityGroup ]
+
+  DataStoreIAM:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: datastore/iam/template.yaml
+
+  DataStoreFargate:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: datastore/fargate/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnets:
+          Ref: PrivateSubnets
+        RookoutCluster:
+          Fn::GetAtt: [ ECS, Outputs.RookoutCluster ]
+        RookoutCertificate:
+          Fn::GetAtt: [ Certificates, Outputs.RookoutCertificate ]
+        RookoutDataStoreFargateServiceSecurityGroup:
+          Fn::GetAtt: [ DataStoreSG, Outputs.RookoutDataStoreFargateServiceSecurityGroup ]
+        RookoutDataStoreFargateServiceTaskDefTaskRole:
+          Fn::GetAtt: [ DataStoreIAM, Outputs.RookoutDataStoreFargateServiceTaskDefTaskRole ]
+        RookoutDataStoreFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt: [ DataStoreIAM, Outputs.RookoutDataStoreFargateServiceTaskDefExecutionRole ]
+        RookoutDataStoreFargateServiceLBArn:
+          Fn::GetAtt: [ DataStoreALB, Outputs.RookoutDataStoreFargateServiceLBArn ]
+
+  DataStoreRoute53:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: datastore/route53/template.yaml
       Parameters:
         HostedZone:
           Ref: HostedZone
         Domain:
           Ref: Domain
-        RookoutControllerFargateServiceLBDNSName:
-          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBDNSName ]
-        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
-          Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID ]
+        RookoutDataStoreFargateServiceLBDNSName:
+          Fn::GetAtt: [ DataStoreALB, Outputs.RookoutDataStoreFargateServiceLBDNSName ]
+        RookoutDataStoreFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt: [ DataStoreALB, Outputs.RookoutDataStoreFargateServiceLBCanonicalHostedZoneID ]

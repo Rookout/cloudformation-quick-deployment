@@ -16,6 +16,17 @@ Parameters:
     Type: String
   RookoutToken:
     Type: String
+  DataStore:
+    AllowedValues:
+    - 'true'
+    - 'false'
+    Default: 'false'
+    Type: String
+Conditions:
+  ShouldCreateDataStore:
+    Fn::Equals:
+    - true
+    - Ref: DataStore
 Resources:
   ECS:
     Type: AWS::CloudFormation::Stack
@@ -24,7 +35,7 @@ Resources:
   Certificates:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/75a127961c6a287ea6fb23a1ed8dedfb.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/daa25d6a8a14a06bd650c84d195ec9dd.template
       Parameters:
         HostedZone:
           Ref: HostedZone
@@ -93,20 +104,88 @@ Resources:
           Fn::GetAtt:
           - ControllerALB
           - Outputs.RookoutControllerFargateServiceLBArn
-  ControllerRoute53:
+  DataStoreSG:
     Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/4290840e9c7c91c0718375f4d2635d5d.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/d5cb973d26e583f83c4443bcbd77dfe2.template
+      Parameters:
+        VpcId:
+          Ref: VpcId
+  DataStoreALB:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/93129ae66bc76061df51be34da12a343.template
+      Parameters:
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutDataStoreFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - DataStoreSG
+          - Outputs.RookoutDataStoreFargateServiceSecurityGroup
+        RookoutDataStoreFargateServiceLBSecurityGroup:
+          Fn::GetAtt:
+          - DataStoreSG
+          - Outputs.RookoutDataStoreFargateServiceLBSecurityGroup
+  DataStoreIAM:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/6dfcf6fcfe0e605df4a29429935f363e.template
+  DataStoreFargate:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/660c877493a5ce18be025a3fe7731a10.template
+      Parameters:
+        VpcId:
+          Ref: VpcId
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnets:
+          Ref: PrivateSubnets
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutCertificate:
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
+        RookoutDataStoreFargateServiceSecurityGroup:
+          Fn::GetAtt:
+          - DataStoreSG
+          - Outputs.RookoutDataStoreFargateServiceSecurityGroup
+        RookoutDataStoreFargateServiceTaskDefTaskRole:
+          Fn::GetAtt:
+          - DataStoreIAM
+          - Outputs.RookoutDataStoreFargateServiceTaskDefTaskRole
+        RookoutDataStoreFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt:
+          - DataStoreIAM
+          - Outputs.RookoutDataStoreFargateServiceTaskDefExecutionRole
+        RookoutDataStoreFargateServiceLBArn:
+          Fn::GetAtt:
+          - DataStoreALB
+          - Outputs.RookoutDataStoreFargateServiceLBArn
+  DataStoreRoute53:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/19144cd8f421e4ba91695025077488db.template
       Parameters:
         HostedZone:
           Ref: HostedZone
         Domain:
           Ref: Domain
-        RookoutControllerFargateServiceLBDNSName:
+        RookoutDataStoreFargateServiceLBDNSName:
           Fn::GetAtt:
-          - ControllerALB
-          - Outputs.RookoutControllerFargateServiceLBDNSName
-        RookoutControllerFargateServiceLBCanonicalHostedZoneID:
+          - DataStoreALB
+          - Outputs.RookoutDataStoreFargateServiceLBDNSName
+        RookoutDataStoreFargateServiceLBCanonicalHostedZoneID:
           Fn::GetAtt:
-          - ControllerALB
-          - Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID
+          - DataStoreALB
+          - Outputs.RookoutDataStoreFargateServiceLBCanonicalHostedZoneID

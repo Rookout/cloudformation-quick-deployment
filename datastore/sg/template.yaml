@@ -1,0 +1,34 @@
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+Resources:
+
+  RookoutDataStoreFargateServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: RookoutStack/RookoutDataStoreFargateService/Service/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: VpcId
+
+  RookoutDataStoreFargateServiceLBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Automatically created Security Group for ELB RookoutStackRookoutDataStoreFargateService
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Ref: VpcId
+
+Outputs:
+  RookoutDataStoreFargateServiceSecurityGroup:
+    Value: !GetAtt RookoutDataStoreFargateServiceSecurityGroup.GroupId
+  RookoutDataStoreFargateServiceLBSecurityGroup:
+    Value: !GetAtt RookoutDataStoreFargateServiceLBSecurityGroup.GroupId
