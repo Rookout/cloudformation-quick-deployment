@@ -58,4 +58,4 @@ Resources:
 
 Outputs:
   RookoutCertificate:
-    Value: Ref RookoutCertificate
+    Value: !Ref RookoutCertificate
