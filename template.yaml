@@ -19,35 +19,6 @@ Parameters:
 
 Resources:
 
-  ControllerSG:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: controller/sg/template.yaml
-      Parameters:
-        VpcId:
-          Ref: VpcId
-
-  ControllerALB:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: controller/alb/template.yaml
-      Parameters:
-        VpcId:
-          Ref: VpcId
-        PublicSubnetA:
-          Ref: PublicSubnetA
-        PublicSubnetB:
-          Ref: PublicSubnetB
-        RookoutControllerFargateServiceSecurityGroup:
-          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceSecurityGroup ]
-        RookoutControllerFargateServiceLBSecurityGroup:
-          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceLBSecurityGroup ]
-
-  ControllerIAM:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: controller/iam/template.yaml
-
   ECS:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -62,6 +33,33 @@ Resources:
           Ref: HostedZone
         Domain:
           Ref: Domain
+
+  ControllerSG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/sg/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+
+  ControllerALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/alb/template.yaml
+      Parameters:
+        PublicSubnetA:
+          Ref: PublicSubnetA
+        PublicSubnetB:
+          Ref: PublicSubnetB
+        RookoutControllerFargateServiceSecurityGroup:
+          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceSecurityGroup ]
+        RookoutControllerFargateServiceLBSecurityGroup:
+          Fn::GetAtt: [ ControllerSG, Outputs.RookoutControllerFargateServiceLBSecurityGroup ]
+
+  ControllerIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: controller/iam/template.yaml
 
   ControllerFargate:
     Type: AWS::CloudFormation::Stack

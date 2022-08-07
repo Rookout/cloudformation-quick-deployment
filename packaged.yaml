@@ -29,8 +29,6 @@ Resources:
     Properties:
       TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/c4a7be53d77ebd9b840d9c7484549ade.template
       Parameters:
-        VpcId:
-          Ref: VpcId
         PublicSubnetA:
           Ref: PublicSubnetA
         PublicSubnetB:
@@ -46,7 +44,7 @@ Resources:
   ControllerIAM:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/1877571180ee3fd775ae94de96c09b82.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/acbdce7c03c7ae88f4cf23f6ca90acf1.template
   ECS:
     Type: AWS::CloudFormation::Stack
     Properties:
