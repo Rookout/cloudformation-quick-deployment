@@ -47,7 +47,7 @@ Resources:
 
 Outputs:
   RookoutControllerFargateServiceLBArn:
-    Value: Ref RookoutControllerFargateServiceLB
+    Value: !Ref RookoutControllerFargateServiceLB
   RookoutControllerFargateServiceLBDNSName:
     Value: !GetAtt RookoutControllerFargateServiceLB.DNSName
   RookoutControllerFargateServiceLBCanonicalHostedZoneID:
