@@ -17,13 +17,25 @@ Parameters:
   RookoutToken:
     Type: String
   DataStore:
-    "AllowedValues": ["true", "false"]
-    "Default": "false"
-    "Type": String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Type: String
   Demo:
-    "AllowedValues": [ "true", "false" ]
-    "Default": "false"
-    "Type": String
+    AllowedValues: [ "true", "false" ]
+    Default: "false"
+    Type: String
+  ControllerCPU:
+    Default: 2048
+    Type: String
+  ControllerMemory:
+    Default: 4096
+    Type: String
+  DataStoreCPU:
+    Default: 2048
+    Type: String
+  DataStoreMemory:
+    Default: 4096
+    Type: String
 Conditions:
   ShouldCreateDataStore:
     !Equals [true, !Ref DataStore]
@@ -84,6 +96,10 @@ Resources:
           Ref: RookoutToken
         PrivateSubnets:
           Ref: PrivateSubnets
+        ControllerCPU:
+          Ref: ControllerCPU
+        ControllerMemory:
+          Ref: ControllerMemory
         RookoutCluster:
           Fn::GetAtt: [ ECS, Outputs.RookoutCluster ]
         RookoutCertificate:
@@ -155,6 +171,10 @@ Resources:
           Ref: RookoutToken
         PrivateSubnets:
           Ref: PrivateSubnets
+        DataStoreCPU:
+          Ref: ControllerCPU
+        DataStoreMemory:
+          Ref: ControllerMemory
         RookoutCluster:
           Fn::GetAtt: [ ECS, Outputs.RookoutCluster ]
         RookoutCertificate:

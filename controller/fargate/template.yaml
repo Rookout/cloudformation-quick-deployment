@@ -18,6 +18,11 @@ Parameters:
     Type: String
   RookoutControllerFargateServiceLBArn:
     Type: String
+  ControllerCPU:
+    Type: String
+  ControllerMemory:
+    Type: String
+
 
 Resources:
   RookoutControllerFargateServiceTaskDef:
@@ -50,10 +55,10 @@ Resources:
           PortMappings:
             - ContainerPort: 7488
               Protocol: tcp
-      Cpu: "512"
+      Cpu: !Ref ControllerCPU
       ExecutionRoleArn: !Ref RookoutControllerFargateServiceTaskDefExecutionRole
       Family: RookoutStackRookoutControllerFargateServiceTaskDef
-      Memory: "2048"
+      Memory: !Ref ControllerMemory
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -92,7 +97,7 @@ Resources:
   RookoutControllerFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: 80
+      Port: 7488
       Protocol: HTTP
       TargetGroupAttributes:
         - Key: stickiness.enabled

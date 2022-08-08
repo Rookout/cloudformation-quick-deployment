@@ -28,6 +28,18 @@ Parameters:
     - 'false'
     Default: 'false'
     Type: String
+  ControllerCPU:
+    Default: 2048
+    Type: String
+  ControllerMemory:
+    Default: 4096
+    Type: String
+  DataStoreCPU:
+    Default: 2048
+    Type: String
+  DataStoreMemory:
+    Default: 4096
+    Type: String
 Conditions:
   ShouldCreateDataStore:
     Fn::Equals:
@@ -82,7 +94,7 @@ Resources:
   ControllerFargate:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/a79de38e5e936bce62ccc482240e313b.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/5bfe5ceb692ce5ed3cbbd22cf27cbe58.template
       Parameters:
         VpcId:
           Ref: VpcId
@@ -90,6 +102,10 @@ Resources:
           Ref: RookoutToken
         PrivateSubnets:
           Ref: PrivateSubnets
+        ControllerCPU:
+          Ref: ControllerCPU
+        ControllerMemory:
+          Ref: ControllerMemory
         RookoutCluster:
           Fn::GetAtt:
           - ECS
@@ -166,7 +182,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDataStore
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/660c877493a5ce18be025a3fe7731a10.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/ca406b5104bc45eecf79a747500ed877.template
       Parameters:
         VpcId:
           Ref: VpcId
@@ -174,6 +190,10 @@ Resources:
           Ref: RookoutToken
         PrivateSubnets:
           Ref: PrivateSubnets
+        DataStoreCPU:
+          Ref: ControllerCPU
+        DataStoreMemory:
+          Ref: ControllerMemory
         RookoutCluster:
           Fn::GetAtt:
           - ECS
@@ -228,7 +248,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDemo
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/aeab1e4d2b632675626135487837c632.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/0db2d61c6c3ce8ec31cf44ff078ca5b3.template
       Parameters:
         PublicSubnetA:
           Ref: PublicSubnetA
@@ -251,7 +271,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDemo
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/d76d446c1b99d7887c44cef755c1ec30.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/1cb15e6946578bd5d1c112ac6fddd788.template
       Parameters:
         Domain:
           Ref: Domain

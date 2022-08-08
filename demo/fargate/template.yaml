@@ -33,9 +33,10 @@ Resources:
             - Name: ROOKOUT_CONTROLLER_HOST
               Value:
                 Fn::Join:
-                  - "wss://"
-                  - - controller.rookout.
-                    - Ref: Domain
+                  - ""
+                  - - "wss://"
+                    - controller.rookout.
+                    - !Ref Domain
             - Name: ROOKOUT_CONTROLLER_PORT
               Value: 443
             - Name: ROOKOUT_REMOTE_ORIGIN
@@ -98,7 +99,8 @@ Resources:
   RookoutDemoFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: 80
+      HealthCheckPath: "/todos"
+      Port: 5000
       Protocol: HTTP
       TargetGroupAttributes:
         - Key: stickiness.enabled

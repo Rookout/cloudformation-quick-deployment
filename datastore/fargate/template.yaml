@@ -18,6 +18,10 @@ Parameters:
     Type: String
   RookoutDataStoreFargateServiceLBArn:
     Type: String
+  DataStoreCPU:
+    Type: String
+  DataStoreMemory:
+    Type: String
 
 Resources:
   RookoutDataStoreFargateServiceTaskDef:
@@ -48,10 +52,10 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
               Protocol: tcp
-      Cpu: "512"
+      Cpu: !Ref DataStoreCPU
       ExecutionRoleArn: !Ref RookoutDataStoreFargateServiceTaskDefExecutionRole
       Family: RookoutStackRookoutDataStoreFargateServiceTaskDef
-      Memory: "2048"
+      Memory: !Ref DataStoreMemory
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -90,7 +94,7 @@ Resources:
   RookoutDataStoreFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: 80
+      Port: 8080
       Protocol: HTTP
       TargetGroupAttributes:
         - Key: stickiness.enabled
