@@ -1,5 +1,4 @@
 Resources:
-
   RookoutControllerFargateServiceTaskDefTaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -10,8 +9,6 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
         Version: "2012-10-17"
-
-
   RookoutControllerFargateServiceTaskDefExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -22,7 +19,6 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
         Version: "2012-10-17"
-
 Outputs:
   RookoutControllerFargateServiceTaskDefTaskRole:
     Value: !GetAtt RookoutControllerFargateServiceTaskDefTaskRole.Arn

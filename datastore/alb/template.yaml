@@ -1,16 +1,13 @@
 Parameters:
-
   RookoutDataStoreFargateServiceSecurityGroup:
     Type: String
   RookoutDataStoreFargateServiceLBSecurityGroup:
     Type: String
-  PublicSubnetA:
+  PublicSubnet1:
     Type: String
-  PublicSubnetB:
+  PublicSubnet2:
     Type: String
-
 Resources:
-
   RookoutDataStoreFargateServiceLBSecurityGrouptoRookoutStackRookoutDataStoreFargateServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -20,7 +17,6 @@ Resources:
       DestinationSecurityGroupId: !Ref RookoutDataStoreFargateServiceSecurityGroup
       FromPort: 8080
       ToPort: 8080
-
   RookoutDataStoreFargateServiceSecurityGroupfromRookoutStackRookoutDataStoreFargateServiceLBSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -30,7 +26,6 @@ Resources:
       GroupId: !Ref RookoutDataStoreFargateServiceSecurityGroup
       SourceSecurityGroupId: !Ref RookoutDataStoreFargateServiceLBSecurityGroup
       ToPort: 8080
-
   RookoutDataStoreFargateServiceLB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -41,10 +36,9 @@ Resources:
       SecurityGroups:
         - Ref: RookoutDataStoreFargateServiceLBSecurityGroup
       Subnets:
-        - Ref: PublicSubnetA
-        - Ref: PublicSubnetB
+        - Ref: PublicSubnet1
+        - Ref: PublicSubnet2
       Type: application
-
 Outputs:
   RookoutDataStoreFargateServiceLBArn:
     Value: !Ref RookoutDataStoreFargateServiceLB

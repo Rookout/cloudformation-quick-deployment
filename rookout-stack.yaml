@@ -1,0 +1,190 @@
+Parameters:
+  HostedZone:
+    Description: Select Public Route53 HostedZone where DNS reccord will be created.
+    Type: AWS::Route53::HostedZone::Id
+  Domain:
+    Description: Enter your domain assosiated with HostedZone
+    Type: String
+  RookoutToken:
+    Description: Rookout token.
+    Type: String
+  DataStoreDeploy:
+    Description: Deploy Rookout On-Prem datastore.
+    AllowedValues:
+    - 'true'
+    - 'false'
+    Default: 'false'
+    Type: String
+  DemoDeploy:
+    Description: Deploy demo application.
+    AllowedValues:
+    - 'true'
+    - 'false'
+    Default: 'false'
+    Type: String
+  ControllerCPU:
+    Description: The number of cpu units used by the Controller task (1024 = 1 vCPU)
+    AllowedValues:
+    - 1024
+    - 2048
+    - 4096
+    Default: 2048
+    Type: String
+  ControllerMemory:
+    Description: The amount (in MiB) of memory used by the Controller task.
+    Default: 4096
+    Type: String
+  DataStoreCPU:
+    Description: The number of cpu units used by the DataStore task (1024 = 1 vCPU)
+    AllowedValues:
+    - 1024
+    - 2048
+    - 4096
+    Default: 2048
+    Type: String
+  DataStoreMemory:
+    Description: The amount (in MiB) of memory used by the DataStore task.
+    Default: 4096
+    Type: String
+  RookoutCertificate:
+    Type: String
+    Default: arn:aws:acm:us-east-1:032275105219:certificate/493824cd-621b-4cfe-8f46-809455a4f945
+Conditions:
+  ShouldCreateDataStore:
+    Fn::Equals:
+    - true
+    - Ref: DataStoreDeploy
+  ShouldCreateDemo:
+    Fn::Equals:
+    - true
+    - Ref: DemoDeploy
+Resources:
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/bfa0a0fa16474aa4ca741b741159a827.template
+  ECS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/28119bb8b857f05aa59887dc0ea3c95d.template
+  Controller:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/05f8e1164cb2af9dae67c6d29bed9380.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutToken:
+          Ref: RookoutToken
+        CPU:
+          Ref: ControllerCPU
+        Memory:
+          Ref: ControllerMemory
+        VpcId:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.VpcId
+        PublicSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet1
+        PublicSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet2
+        PrivateSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet1
+        PrivateSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet2
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutCertificate:
+          Ref: RookoutCertificate
+  DataStore:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDataStore
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/39bf8ad1265acf85cbd8c8b1bc1b7c5a.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutToken:
+          Ref: RookoutToken
+        CPU:
+          Ref: DataStoreCPU
+        Memory:
+          Ref: DataStoreMemory
+        VpcId:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.VpcId
+        PublicSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet1
+        PublicSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet2
+        PrivateSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet1
+        PrivateSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet2
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutCertificate:
+          Ref: RookoutCertificate
+  Demo:
+    Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateDemo
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/70fc108b65d6643fd4383516b1056d52.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutToken:
+          Ref: RookoutToken
+        VpcId:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.VpcId
+        PublicSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet1
+        PublicSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet2
+        PrivateSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet1
+        PrivateSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PrivateSubnet2
+        RookoutCluster:
+          Fn::GetAtt:
+          - ECS
+          - Outputs.RookoutCluster
+        RookoutCertificate:
+          Ref: RookoutCertificate

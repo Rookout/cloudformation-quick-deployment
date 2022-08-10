@@ -1,6 +1,6 @@
 Parameters:
   HostedZone:
-    Type: AWS::Route53::HostedZone::Id
+    Type: String
   Domain:
     Type: String
 Resources:
@@ -55,7 +55,6 @@ Resources:
             - - demo.rookout.
               - Ref: Domain
       ValidationMethod: DNS
-
 Outputs:
   RookoutCertificate:
     Value: !Ref RookoutCertificate

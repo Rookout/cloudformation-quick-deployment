@@ -1,6 +1,6 @@
 Parameters:
   HostedZone:
-    Type: AWS::Route53::HostedZone::Id
+    Type: String
   Domain:
     Type: String
   RookoutDemoFargateServiceLBDNSName:

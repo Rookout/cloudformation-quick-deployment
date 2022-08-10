@@ -1,0 +1,86 @@
+Parameters:
+  VpcId:
+    Type: String
+  RookoutCluster:
+    Type: String
+  RookoutToken:
+    Type: String
+  RookoutCertificate:
+    Type: String
+  PublicSubnet1:
+    Type: String
+  PublicSubnet2:
+    Type: String
+  PrivateSubnet1:
+    Type: String
+  PrivateSubnet2:
+    Type: String
+  HostedZone:
+    Type: String
+  Domain:
+    Type: String
+Resources:
+  DemoSG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: sg/template.yaml
+      Parameters:
+        VpcId:
+          Ref: VpcId
+  DemoALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: alb/template.yaml
+      Parameters:
+        PublicSubnet1:
+          Ref: PublicSubnet1
+        PublicSubnet2:
+          Ref: PublicSubnet2
+        RookoutDemoFargateServiceSecurityGroup:
+          Fn::GetAtt: [ DemoSG, Outputs.RookoutDemoFargateServiceSecurityGroup ]
+        RookoutDemoFargateServiceLBSecurityGroup:
+          Fn::GetAtt: [ DemoSG, Outputs.RookoutDemoFargateServiceLBSecurityGroup ]
+  DemoIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam/template.yaml
+  DemoFargate:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: fargate/template.yaml
+      Parameters:
+        Domain:
+          Ref: Domain
+        VpcId:
+          Ref: VpcId
+        RookoutToken:
+          Ref: RookoutToken
+        PrivateSubnet1:
+          Ref: PrivateSubnet1
+        PrivateSubnet2:
+          Ref: PrivateSubnet2
+        RookoutCluster:
+          Ref: RookoutCluster
+        RookoutCertificate:
+          Ref: RookoutCertificate
+        RookoutDemoFargateServiceSecurityGroup:
+          Fn::GetAtt: [ DemoSG, Outputs.RookoutDemoFargateServiceSecurityGroup ]
+        RookoutDemoFargateServiceTaskDefTaskRole:
+          Fn::GetAtt: [ DemoIAM, Outputs.RookoutDemoFargateServiceTaskDefTaskRole ]
+        RookoutDemoFargateServiceTaskDefExecutionRole:
+          Fn::GetAtt: [ DemoIAM, Outputs.RookoutDemoFargateServiceTaskDefExecutionRole ]
+        RookoutDemoFargateServiceLBArn:
+          Fn::GetAtt: [ DemoALB, Outputs.RookoutDemoFargateServiceLBArn ]
+  DemoRoute53:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: route53/template.yaml
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
+        RookoutDemoFargateServiceLBDNSName:
+          Fn::GetAtt: [ DemoALB, Outputs.RookoutDemoFargateServiceLBDNSName ]
+        RookoutDemoFargateServiceLBCanonicalHostedZoneID:
+          Fn::GetAtt: [ DemoALB, Outputs.RookoutDemoFargateServiceLBCanonicalHostedZoneID ]

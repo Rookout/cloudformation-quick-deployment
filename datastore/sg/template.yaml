@@ -1,8 +1,7 @@
 Parameters:
   VpcId:
-    Type: AWS::EC2::VPC::Id
+    Type: String
 Resources:
-
   RookoutDataStoreFargateServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -13,7 +12,6 @@ Resources:
           IpProtocol: "-1"
       VpcId:
         Ref: VpcId
-
   RookoutDataStoreFargateServiceLBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -26,7 +24,6 @@ Resources:
           ToPort: 443
       VpcId:
         Ref: VpcId
-
 Outputs:
   RookoutDataStoreFargateServiceSecurityGroup:
     Value: !GetAtt RookoutDataStoreFargateServiceSecurityGroup.GroupId

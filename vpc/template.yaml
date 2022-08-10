@@ -1,0 +1,243 @@
+Resources:
+  RookoutVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc
+  RookoutVpcPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.0.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet1
+  RookoutVpcPublicSubnet1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet1
+  RookoutVpcPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPublicSubnet1RouteTable
+      SubnetId:
+        Ref: RookoutVpcPublicSubnet1
+  RookoutVpcPublicSubnet1DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPublicSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: RookoutVpcIGW
+    DependsOn:
+      - RookoutVpcVPCGW
+  RookoutVpcPublicSubnet1EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet1
+  RookoutVpcPublicSubnet1NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: RookoutVpcPublicSubnet1
+      AllocationId:
+        Fn::GetAtt:
+          - RookoutVpcPublicSubnet1EIP
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet1
+  RookoutVpcPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.64.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet2
+  RookoutVpcPublicSubnet2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet2
+  RookoutVpcPublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPublicSubnet2RouteTable
+      SubnetId:
+        Ref: RookoutVpcPublicSubnet2
+  RookoutVpcPublicSubnet2DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPublicSubnet2RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: RookoutVpcIGW
+    DependsOn:
+      - RookoutVpcVPCGW
+  RookoutVpcPublicSubnet2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet2
+  RookoutVpcPublicSubnet2NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: RookoutVpcPublicSubnet2
+      AllocationId:
+        Fn::GetAtt:
+          - RookoutVpcPublicSubnet2EIP
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PublicSubnet2
+  RookoutVpcPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.128.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PrivateSubnet1
+  RookoutVpcPrivateSubnet1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PrivateSubnet1
+  RookoutVpcPrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPrivateSubnet1RouteTable
+      SubnetId:
+        Ref: RookoutVpcPrivateSubnet1
+    Metadata:
+      aws:cdk:path: RookoutStack/RookoutVpc/PrivateSubnet1/RouteTableAssociation
+  RookoutVpcPrivateSubnet1DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPrivateSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: RookoutVpcPublicSubnet1NATGateway
+  RookoutVpcPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.192.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PrivateSubnet2
+  RookoutVpcPrivateSubnet2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc/PrivateSubnet2
+  RookoutVpcPrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPrivateSubnet2RouteTable
+      SubnetId:
+        Ref: RookoutVpcPrivateSubnet2
+  RookoutVpcPrivateSubnet2DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RookoutVpcPrivateSubnet2RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: RookoutVpcPublicSubnet2NATGateway
+  RookoutVpcIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: RookoutStack/RookoutVpc
+  RookoutVpcVPCGW:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: RookoutVpc
+      InternetGatewayId:
+        Ref: RookoutVpcIGW
+Outputs:
+  VpcId:
+    Value: !Ref RookoutVpc
+  PublicSubnet1:
+    Value: !Ref RookoutVpcPublicSubnet1
+  PublicSubnet2:
+    Value: !Ref RookoutVpcPublicSubnet2
+  PrivateSubnet1:
+    Value: !Ref RookoutVpcPrivateSubnet1
+  PrivateSubnet2:
+    Value: !Ref RookoutVpcPrivateSubnet2

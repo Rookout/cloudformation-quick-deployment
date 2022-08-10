@@ -1,14 +1,15 @@
 Parameters:
-
   VpcId:
-    Type: AWS::EC2::VPC::Id
+    Type: String
   RookoutCluster:
     Type: String
   RookoutToken:
     Type: String
   RookoutCertificate:
     Type: String
-  PrivateSubnets:
+  PrivateSubnet1:
+    Type: String
+  PrivateSubnet2:
     Type: String
   RookoutControllerFargateServiceTaskDefTaskRole:
     Type: String
@@ -18,12 +19,10 @@ Parameters:
     Type: String
   RookoutControllerFargateServiceLBArn:
     Type: String
-  ControllerCPU:
+  CPU:
     Type: String
-  ControllerMemory:
+  Memory:
     Type: String
-
-
 Resources:
   RookoutControllerFargateServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
@@ -55,15 +54,14 @@ Resources:
           PortMappings:
             - ContainerPort: 7488
               Protocol: tcp
-      Cpu: !Ref ControllerCPU
+      Cpu: !Ref CPU
       ExecutionRoleArn: !Ref RookoutControllerFargateServiceTaskDefExecutionRole
       Family: RookoutStackRookoutControllerFargateServiceTaskDef
-      Memory: !Ref ControllerMemory
+      Memory: !Ref Memory
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       TaskRoleArn: !Ref RookoutControllerFargateServiceTaskDefTaskRole
-
   RookoutControllerFargateService:
     Type: AWS::ECS::Service
     Properties:
@@ -87,13 +85,13 @@ Resources:
           SecurityGroups:
             - Ref: RookoutControllerFargateServiceSecurityGroup
           Subnets:
-            - Ref: PrivateSubnets
+            - Ref: PrivateSubnet1
+            - Ref: PrivateSubnet2
       TaskDefinition:
         Ref: RookoutControllerFargateServiceTaskDef
     DependsOn:
       - RookoutControllerFargateServiceLBPublicListenerECSGroup
       - RookoutControllerFargateServiceLBPublicListener
-
   RookoutControllerFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -105,7 +103,6 @@ Resources:
       TargetType: ip
       VpcId:
         Ref: VpcId
-
   RookoutControllerFargateServiceLBPublicListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -120,7 +117,6 @@ Resources:
             Ref: RookoutCertificate
       Port: 443
       Protocol: HTTPS
-
   RookoutControllerFargateServiceTaskDefExecutionRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -138,7 +134,6 @@ Resources:
       PolicyName: RookoutControllerFargateServiceTaskDefExecutionRoleDefaultPolicy
       Roles:
         - Ref: RookoutControllerFargateServiceTaskDefExecutionRole
-
   RookoutControllerFargateServiceTaskDefcontrollerLogGroup:
     Type: AWS::Logs::LogGroup
     UpdateReplacePolicy: Retain

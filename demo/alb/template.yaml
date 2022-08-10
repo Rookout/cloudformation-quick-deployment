@@ -1,16 +1,13 @@
 Parameters:
-
   RookoutDemoFargateServiceSecurityGroup:
     Type: String
   RookoutDemoFargateServiceLBSecurityGroup:
     Type: String
-  PublicSubnetA:
+  PublicSubnet1:
     Type: String
-  PublicSubnetB:
+  PublicSubnet2:
     Type: String
-
 Resources:
-
   RookoutDemoFargateServiceLBSecurityGrouptoRookoutStackRookoutDemoFargateServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -20,7 +17,6 @@ Resources:
       DestinationSecurityGroupId: !Ref RookoutDemoFargateServiceSecurityGroup
       FromPort: 5000
       ToPort: 5000
-
   RookoutDemoFargateServiceSecurityGroupfromRookoutStackRookoutDemoFargateServiceLBSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -30,7 +26,6 @@ Resources:
       GroupId: !Ref RookoutDemoFargateServiceSecurityGroup
       SourceSecurityGroupId: !Ref RookoutDemoFargateServiceLBSecurityGroup
       ToPort: 5000
-
   RookoutDemoFargateServiceLB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -41,10 +36,9 @@ Resources:
       SecurityGroups:
         - Ref: RookoutDemoFargateServiceLBSecurityGroup
       Subnets:
-        - Ref: PublicSubnetA
-        - Ref: PublicSubnetB
+        - Ref: PublicSubnet1
+        - Ref: PublicSubnet2
       Type: application
-
 Outputs:
   RookoutDemoFargateServiceLBArn:
     Value: !Ref RookoutDemoFargateServiceLB

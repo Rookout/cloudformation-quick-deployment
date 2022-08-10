@@ -1,14 +1,15 @@
 Parameters:
-
   VpcId:
-    Type: AWS::EC2::VPC::Id
+    Type: String
   RookoutCluster:
     Type: String
   RookoutToken:
     Type: String
   RookoutCertificate:
     Type: String
-  PrivateSubnets:
+  PrivateSubnet1:
+    Type: String
+  PrivateSubnet2:
     Type: String
   RookoutDemoFargateServiceTaskDefTaskRole:
     Type: String
@@ -20,7 +21,6 @@ Parameters:
     Type: String
   Domain:
     Type: String
-
 Resources:
   RookoutDemoFargateServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
@@ -60,12 +60,11 @@ Resources:
       Cpu: "512"
       ExecutionRoleArn: !Ref RookoutDemoFargateServiceTaskDefExecutionRole
       Family: RookoutStackRookoutDemoFargateServiceTaskDef
-      Memory: "2048"
+      Memory: "1024"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       TaskRoleArn: !Ref RookoutDemoFargateServiceTaskDefTaskRole
-
   RookoutDemoFargateService:
     Type: AWS::ECS::Service
     Properties:
@@ -89,13 +88,13 @@ Resources:
           SecurityGroups:
             - Ref: RookoutDemoFargateServiceSecurityGroup
           Subnets:
-            - Ref: PrivateSubnets
+            - Ref: PrivateSubnet1
+            - Ref: PrivateSubnet2
       TaskDefinition:
         Ref: RookoutDemoFargateServiceTaskDef
     DependsOn:
       - RookoutDemoFargateServiceLBPublicListenerECSGroup
       - RookoutDemoFargateServiceLBPublicListener
-
   RookoutDemoFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -108,7 +107,6 @@ Resources:
       TargetType: ip
       VpcId:
         Ref: VpcId
-
   RookoutDemoFargateServiceLBPublicListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -123,7 +121,6 @@ Resources:
             Ref: RookoutCertificate
       Port: 443
       Protocol: HTTPS
-
   RookoutDemoFargateServiceTaskDefExecutionRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -141,7 +138,6 @@ Resources:
       PolicyName: RookoutDemoFargateServiceTaskDefExecutionRoleDefaultPolicy
       Roles:
         - Ref: RookoutDemoFargateServiceTaskDefExecutionRole
-
   RookoutDemoFargateServiceTaskDefDemoLogGroup:
     Type: AWS::Logs::LogGroup
     UpdateReplacePolicy: Retain

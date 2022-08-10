@@ -1,14 +1,15 @@
 Parameters:
-
   VpcId:
-    Type: AWS::EC2::VPC::Id
+    Type: String
   RookoutCluster:
     Type: String
   RookoutToken:
     Type: String
   RookoutCertificate:
     Type: String
-  PrivateSubnets:
+  PrivateSubnet1:
+    Type: String
+  PrivateSubnet2:
     Type: String
   RookoutDataStoreFargateServiceTaskDefTaskRole:
     Type: String
@@ -18,11 +19,10 @@ Parameters:
     Type: String
   RookoutDataStoreFargateServiceLBArn:
     Type: String
-  DataStoreCPU:
+  CPU:
     Type: String
-  DataStoreMemory:
+  Memory:
     Type: String
-
 Resources:
   RookoutDataStoreFargateServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
@@ -52,15 +52,14 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
               Protocol: tcp
-      Cpu: !Ref DataStoreCPU
+      Cpu: !Ref CPU
       ExecutionRoleArn: !Ref RookoutDataStoreFargateServiceTaskDefExecutionRole
       Family: RookoutStackRookoutDataStoreFargateServiceTaskDef
-      Memory: !Ref DataStoreMemory
+      Memory: !Ref Memory
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       TaskRoleArn: !Ref RookoutDataStoreFargateServiceTaskDefTaskRole
-
   RookoutDataStoreFargateService:
     Type: AWS::ECS::Service
     Properties:
@@ -84,13 +83,13 @@ Resources:
           SecurityGroups:
             - Ref: RookoutDataStoreFargateServiceSecurityGroup
           Subnets:
-            - Ref: PrivateSubnets
+            - Ref: PrivateSubnet1
+            - Ref: PrivateSubnet2
       TaskDefinition:
         Ref: RookoutDataStoreFargateServiceTaskDef
     DependsOn:
       - RookoutDataStoreFargateServiceLBPublicListenerECSGroup
       - RookoutDataStoreFargateServiceLBPublicListener
-
   RookoutDataStoreFargateServiceLBPublicListenerECSGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -102,7 +101,6 @@ Resources:
       TargetType: ip
       VpcId:
         Ref: VpcId
-
   RookoutDataStoreFargateServiceLBPublicListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -117,7 +115,6 @@ Resources:
             Ref: RookoutCertificate
       Port: 443
       Protocol: HTTPS
-
   RookoutDataStoreFargateServiceTaskDefExecutionRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -135,7 +132,6 @@ Resources:
       PolicyName: RookoutDataStoreFargateServiceTaskDefExecutionRoleDefaultPolicy
       Roles:
         - Ref: RookoutDataStoreFargateServiceTaskDefExecutionRole
-
   RookoutDataStoreFargateServiceTaskDefDataStoreLogGroup:
     Type: AWS::Logs::LogGroup
     UpdateReplacePolicy: Retain
