@@ -35,7 +35,7 @@ https&#65279;://demo.rookout.PROVIDE_DOMAIN - Flask demo application for debugin
 
 ### Quick Start
 
-1. Launch Stack [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png.)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?rookout-stack=myteststack&templateURL=https://rookout-on-prem-cloudformation.s3.amazonaws.com/rookout-stack.yaml)
+1. Launch Stack [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?rookout-stack=myteststack&templateURL=https://rookout-on-prem-cloudformation.s3.amazonaws.com/rookout-stack.yaml)
 2. Follow the cloudformation wizard
 
 ### Generating Stack from source and upload to your own bucket
