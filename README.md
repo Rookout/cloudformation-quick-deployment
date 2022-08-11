@@ -1,11 +1,11 @@
 ## Deploy Rookout On-Prem Stack on AWS ECS Fargate Cluster using CloudFormation
 
-This CloudFormation Stack provision Rookout Controller and Rookout On-Prem Datastore on AWS ECS Fargate cluster.
-This nested stack include:
+This CloudFormation Stack provisions Rookout On-Prem Controller and Datastore on AWS ECS Fargate cluster.
+This nested stack includes:
 1. VPC
 2. ECS Cluster
 3. Application load-balancer
-4. Certificate issue from ACM(Amazon Certificate Manager) for rookout subdomains
+4. Certificate issued by ACM (Amazon Certificate Manager) for rookout sub-domains
 5. Rookout ETL Controller https://docs.rookout.com/docs/etl-controller-intro/
 6. (Optional) Rookout On-Prem datastore component https://docs.rookout.com/docs/dop-intro/
 7. (Optional) Demo application https://github.com/Rookout/tutorial-python
@@ -18,8 +18,8 @@ This nested stack include:
 ### Prerequisites
 1. AWS account
 2. Rookout enterprise account token
-3. Rout53 registered domain https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register-update.html
-4. Rout53 public hosted zone associated with domain https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-working-with.html.
+3. Route53 registered domain https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register-update.html
+4. Route53 public hosted zone associated with domain https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-working-with.html.
 
 ### Level of rookout deployment
 1. Controller only
