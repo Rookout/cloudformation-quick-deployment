@@ -28,3 +28,6 @@ Resources:
           Ref: RookoutDemoFargateServiceLBCanonicalHostedZoneID
       HostedZoneId:
         Ref: HostedZone
+Outputs:
+  DemoRoute53:
+    Value: !Ref RookoutDemoFargateServiceDNS

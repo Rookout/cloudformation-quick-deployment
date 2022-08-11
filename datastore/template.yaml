@@ -90,3 +90,7 @@ Resources:
           Fn::GetAtt: [ DataStoreALB, Outputs.RookoutDataStoreFargateServiceLBDNSName ]
         RookoutDataStoreFargateServiceLBCanonicalHostedZoneID:
           Fn::GetAtt: [ DataStoreALB, Outputs.RookoutDataStoreFargateServiceLBCanonicalHostedZoneID ]
+Outputs:
+  DataStoreRoute53:
+    Value:
+      Fn::GetAtt: [ DataStoreRoute53, Outputs.DataStoreRoute53 ]

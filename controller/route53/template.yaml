@@ -28,3 +28,6 @@ Resources:
           Ref: RookoutControllerFargateServiceLBCanonicalHostedZoneID
       HostedZoneId:
         Ref: HostedZone
+Outputs:
+  ControllerRoute53:
+    Value: !Ref RookoutControllerFargateServiceDNS

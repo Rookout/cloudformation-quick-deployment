@@ -11,12 +11,12 @@ Parameters:
   DataStoreDeploy:
     Description: Deploy Rookout On-Prem datastore.
     AllowedValues: ["true", "false"]
-    Default: "false"
+    Default: "true"
     Type: String
   DemoDeploy:
     Description: Deploy demo application.
     AllowedValues: [ "true", "false" ]
-    Default: "false"
+    Default: "true"
     Type: String
   ControllerCPU:
     Description: The number of cpu units used by the Controller task (1024 = 1 vCPU)
@@ -144,3 +144,15 @@ Resources:
           Fn::GetAtt: [ ECS, Outputs.RookoutCluster ]
         RookoutCertificate:
           Fn::GetAtt: [ Certificates, Outputs.RookoutCertificate ]
+Outputs:
+  ControllerEndpoint:
+    Value: !Join [ "", [ "wss://", !GetAtt Controller.Outputs.ControllerRoute53 ] ]
+    Description: URL of the controller, used for SDK (rooks)
+  DataStoreEndpoint:
+    Value: !Join [ "", [ "https://", !GetAtt DataStore.Outputs.DataStoreRoute53 ] ]
+    Description: URL to the datastore, used with rookout client (web browser application)
+    Condition: ShouldCreateDataStore
+  DemoAppURL:
+    Value: !Join [ "", [ "https://", !GetAtt Demo.Outputs.DemoRoute53 ] ]
+    Description: Flask demo application for debuging URL
+    Condition: ShouldCreateDemo

@@ -28,3 +28,6 @@ Resources:
           Ref: RookoutDataStoreFargateServiceLBCanonicalHostedZoneID
       HostedZoneId:
         Ref: HostedZone
+Outputs:
+  DataStoreRoute53:
+    Value: !Ref RookoutDataStoreFargateServiceDNS

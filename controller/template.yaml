@@ -90,3 +90,7 @@ Resources:
           Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBDNSName ]
         RookoutControllerFargateServiceLBCanonicalHostedZoneID:
           Fn::GetAtt: [ ControllerALB, Outputs.RookoutControllerFargateServiceLBCanonicalHostedZoneID ]
+Outputs:
+  ControllerRoute53:
+    Value:
+      Fn::GetAtt: [ ControllerRoute53, Outputs.ControllerRoute53 ]

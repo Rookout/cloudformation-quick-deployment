@@ -84,3 +84,7 @@ Resources:
           Fn::GetAtt: [ DemoALB, Outputs.RookoutDemoFargateServiceLBDNSName ]
         RookoutDemoFargateServiceLBCanonicalHostedZoneID:
           Fn::GetAtt: [ DemoALB, Outputs.RookoutDemoFargateServiceLBCanonicalHostedZoneID ]
+Outputs:
+  DemoRoute53:
+    Value:
+      Fn::GetAtt: [ DemoRoute53, Outputs.DemoRoute53 ]

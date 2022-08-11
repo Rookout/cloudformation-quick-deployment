@@ -13,14 +13,14 @@ Parameters:
     AllowedValues:
     - 'true'
     - 'false'
-    Default: 'false'
+    Default: 'true'
     Type: String
   DemoDeploy:
     Description: Deploy demo application.
     AllowedValues:
     - 'true'
     - 'false'
-    Default: 'false'
+    Default: 'true'
     Type: String
   ControllerCPU:
     Description: The number of cpu units used by the Controller task (1024 = 1 vCPU)
@@ -46,9 +46,6 @@ Parameters:
     Description: The amount (in MiB) of memory used by the DataStore task.
     Default: 4096
     Type: String
-  RookoutCertificate:
-    Type: String
-    Default: arn:aws:acm:us-east-1:032275105219:certificate/493824cd-621b-4cfe-8f46-809455a4f945
 Conditions:
   ShouldCreateDataStore:
     Fn::Equals:
@@ -62,15 +59,24 @@ Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/bfa0a0fa16474aa4ca741b741159a827.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/bfa0a0fa16474aa4ca741b741159a827.template
   ECS:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/28119bb8b857f05aa59887dc0ea3c95d.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/28119bb8b857f05aa59887dc0ea3c95d.template
+  Certificates:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/e4227e3ec89463d33884e6365048cdc5.template
+      Parameters:
+        HostedZone:
+          Ref: HostedZone
+        Domain:
+          Ref: Domain
   Controller:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/05f8e1164cb2af9dae67c6d29bed9380.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/5b05663c156b6cf998cc8806b6422096.template
       Parameters:
         HostedZone:
           Ref: HostedZone
@@ -107,12 +113,14 @@ Resources:
           - ECS
           - Outputs.RookoutCluster
         RookoutCertificate:
-          Ref: RookoutCertificate
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
   DataStore:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDataStore
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/39bf8ad1265acf85cbd8c8b1bc1b7c5a.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/d7fa2d859ce8acc54bd33114cf5cbbed.template
       Parameters:
         HostedZone:
           Ref: HostedZone
@@ -149,12 +157,14 @@ Resources:
           - ECS
           - Outputs.RookoutCluster
         RookoutCertificate:
-          Ref: RookoutCertificate
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
   Demo:
     Type: AWS::CloudFormation::Stack
     Condition: ShouldCreateDemo
     Properties:
-      TemplateURL: https://s3.us-east-1.amazonaws.com/alexey-cf/70fc108b65d6643fd4383516b1056d52.template
+      TemplateURL: https://s3.us-east-1.amazonaws.com/rookout-on-prem-cloudformation/fbc335d2614d7b8c0c65f7c67513ac66.template
       Parameters:
         HostedZone:
           Ref: HostedZone
@@ -187,4 +197,36 @@ Resources:
           - ECS
           - Outputs.RookoutCluster
         RookoutCertificate:
-          Ref: RookoutCertificate
+          Fn::GetAtt:
+          - Certificates
+          - Outputs.RookoutCertificate
+Outputs:
+  ControllerEndpoint:
+    Value:
+      Fn::Join:
+      - ''
+      - - wss://
+        - Fn::GetAtt:
+          - Controller
+          - Outputs.ControllerRoute53
+    Description: URL of the controller, used for SDK (rooks)
+  DataStoreEndpoint:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::GetAtt:
+          - DataStore
+          - Outputs.DataStoreRoute53
+    Description: URL to the datastore, used with rookout client (web browser application)
+    Condition: ShouldCreateDataStore
+  DemoAppURL:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::GetAtt:
+          - Demo
+          - Outputs.DemoRoute53
+    Description: Flask demo application for debuging URL
+    Condition: ShouldCreateDemo
