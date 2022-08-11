@@ -13,7 +13,7 @@ This nested stack include:
 *For custom infrastructure deployment we are recommending our official terraform module https://registry.terraform.io/modules/rookout/rookout-deployment/aws/latest*
 ### The stack implements the following network architecture:
 
-<img src="https://github.com/Rookout/terraform-aws-rookout-deployment/blob/main/documentation/AWS_Deployment_Plain_Network.jpgg" width="791" height="416">
+<img src="https://github.com/Rookout/terraform-aws-rookout-deployment/blob/main/documentation/AWS_Deployment_Plain_Network.jpg" width="791" height="416">
 
 ### Prerequisites
 1. AWS account
