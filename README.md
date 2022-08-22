@@ -33,10 +33,29 @@ https&#65279;://datastore.rookout.PROVIDED_DOMAIN - URL to the datastore, used w
 
 https&#65279;://demo.rookout.PROVIDE_DOMAIN - Flask demo application for debuging.
 
-### Quick Start
+## Quick Start
+
+### Launch Stack URL
 
 1. Launch Stack [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?rookout-stack=myteststack&templateURL=https://rookout-on-prem-cloudformation.s3.amazonaws.com/rookout-stack.yaml)
 2. Follow the cloudformation wizard
+
+### AWS CLI
+
+```commandline
+aws cloudformation deploy \
+    --template-file rookout-stack.yaml \
+    --stack-name rookout-stack \
+    --parameter-overrides HostedZone=<HostedZoneID> \
+                          Domain=<Domain> \
+                          RookoutToken=<Rookout Token> \
+                          DataStoreDeploy=true \
+                          DemoDeploy=true \
+                          ControllerCPU=2048 \
+                          ControllerMemory=4096 \
+                          DataStoreCPU=2048 \
+                          DataStoreMemory=4096
+```
 
 ### Generating Stack from source and upload to your own bucket
 
